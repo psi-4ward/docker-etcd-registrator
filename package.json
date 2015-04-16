@@ -1,0 +1,36 @@
+{
+  "name": "docker-etcd-registrator",
+  "version": "1.0.0",
+  "description": "Docker service registrator for etcd and skydns",
+  "main": "app.js",
+  "dependencies": {
+    "debug": "^2.1.3",
+    "async": "^0.9.0",
+    "docker-modem": "^0.2.1",
+    "lodash": "^3.6.0",
+    "node-etcd": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psi-4ward/docker-etcd-registrator"
+  },
+  "keywords": [
+    "docker",
+    "etcd",
+    "coreos",
+    "skydns",
+    "service",
+    "discovery",
+    "dns"
+  ],
+  "author": "Christoph Wiechert <wio@psitrax.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/psi-4ward/docker-etcd-registrator/issues"
+  },
+  "homepage": "https://github.com/psi-4ward/docker-etcd-registrator"
+}

@@ -1,0 +1,43 @@
+[Unit]
+Description=infra-skydns
+Requires=docker.service etcd.service
+After=docker.service etcd.service
+
+[Service]
+Restart=always
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=25
+
+EnvironmentFile=/etc/environment
+
+# remove old container
+ExecStartPre=/bin/sh -c "docker ps -a | grep %p 1>/dev/null && docker rm %p || true"
+
+# initial write config (only if /skydns/config does not exist
+ExecStartPre=/bin/sh -c "\
+  /opt/bin/etcdctl2 ls /skydns/config &> /dev/null \
+  || \
+  /opt/bin/etcdctl2 set /skydns/config \
+    '{\"domain\":\"local.\",\"hostmaster\":\"admin@example.com\",\"nameservers\":[\"8.8.8.8:53\",\"8.8.4.4:53\"],\"ttl\":60}' \
+  "
+
+# Start the container
+ExecStart=/bin/sh -c "\
+  /usr/bin/docker run \
+    --rm \
+    --name=%p \
+    -p 0.0.0.0:53:53 -p 0.0.0.0:53:53/udp \
+    --env ETCD_MACHINES=https://${COREOS_PUBLIC_IPV4}:4001 \
+    --env ETCD_TLSKEY=/etc/ssl/etcd/node.key \
+    --env ETCD_TLSPEM=/etc/ssl/etcd/node.crt \
+    --env ETCD_CACERT=/etc/ssl/etcd/ca.crt \
+    --env SKYDNS_ADDR=0.0.0.0:53 \
+    -v /etc/ssl/etcd:/etc/ssl/etcd \
+    skynetservices/skydns"
+
+ExecStop=/usr/bin/docker stop %p
+
+
+[X-Fleet]
+Global=true
