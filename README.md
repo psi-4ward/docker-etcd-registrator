@@ -15,7 +15,7 @@ The very end of `sidekick.service`
 * Written in Javascript
 * for (but not limited to) CoreOS, see [fleet-unit-files](https://github.com/psi-4ward/docker-etcd-registrator/tree/master/fleet-unit-files)
 
-(thanks to [gliderlabs/registrator](https://github.com/gliderlabs/registrator) for the some ideas)*
+*(thanks to [gliderlabs/registrator](https://github.com/gliderlabs/registrator) for the some ideas)*
 
 ### TODO / Planned
 
@@ -34,10 +34,14 @@ The very end of `sidekick.service`
 
 ```shell
 sudo npm install -g docker-etcd-registrator
-DEBUG=docker,skydns,service ETCD_ENDPOINTS=http://10.1.0.1:4001 docker-etcd-registrator
+
+DEBUG=docker,skydns,service \
+  ETCD_ENDPOINTS=http://10.1.0.1:4001 \
+  docker-etcd-registrator
 ```
 
 **Docker**
+
 ```shell
 docker run --rm \
   --name docker-etcd-registrator \
@@ -53,6 +57,7 @@ docker run --rm \
 ```
 
 **Manual:**
+
 ```shell
 git clone https://github.com/psi-4ward/docker-etcd-registrator.git
 cd docker-etcd-registrator
