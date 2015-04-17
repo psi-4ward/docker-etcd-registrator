@@ -28,11 +28,34 @@ The very end of `sidekick.service`
 
 ## Install &amp; Config
 
+* You need NodeJS >= 0.12.x and NPM; Should also run with IO.JS
 * For now its only possible to configure docker-etcd-registrator using environment variables
 * Make sure the app can read/write to `DOCKER_HOST` (default: `/var/run/docker.sock`)
 
 ```shell
+sudo npm install -g docker-etcd-registrator
+DEBUG=docker,skydns,service ETCD_ENDPOINTS=http://10.1.0.1:4001 docker-etcd-registrator
+```
+
+**Docker**
+```shell
+docker run --rm \
+  --name docker-etcd-registrator \
+  -v /etc/ssl/etcd:/etc/ssl/etcd \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  --env DEBUG=docker,skydns,service \
+  --env HOSTNAME=`hostname` \
+  --env ETCD_ENDPOINTS=https://10.1.0.1:4001,https://10.1.0.2:4001 \
+  --env ETCD_CAFILE=/etc/ssl/etcd/ca-authority.pem \
+  --env ETCD_CERTFILE=/etc/ssl/etcd/certificate.crt \
+  --env ETCD_KEYFILE=/etc/ssl/etcd/key.key \
+  psitrax/docker-etcd-registrator
+```
+
+**Manual:**
+```shell
 git clone https://github.com/psi-4ward/docker-etcd-registrator.git
+cd docker-etcd-registrator
 npm install
 ETCD_ENDPOINTS=http://10.1.0.1:4001 node app.js
 ```
