@@ -30,7 +30,12 @@ _.defaults(process.env, {
 /* Docker */
 /**********/
 
+console.log('Starting docker-etcd-registrator');
 var docker = new Docker();
+
+docker.on('eventstream_open', function() {
+  console.log('Docker daemon connected');
+});
 
 // Docker socket gone?
 docker.on('eventstream_close', function() {
