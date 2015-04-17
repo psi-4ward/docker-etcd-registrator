@@ -1,0 +1,32 @@
+[Unit]
+Description=docker-etcd-registrator
+Requires=docker.service etcd.service
+After=docker.service etcd.service
+
+[Service]
+Restart=always
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=25
+
+EnvironmentFile=/etc/environment
+
+# remove old container
+ExecStartPre=/bin/sh -c "docker ps -a | grep %p 1>/dev/null && docker rm %p || true"
+
+# Start the container
+ExecStart=/bin/sh -c "\
+  /usr/bin/docker run \
+    --rm \
+    --name=%p \
+    --env HOSTNAME=%H \
+    --env ETCD_ENDPOINTS=http://${COREOS_PRIVATE_IPV4}:4001 \
+    --env DEBUG=docker,skydns,service \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    psitrax/docker-etcd-registrator"
+
+ExecStop=/usr/bin/docker stop %p
+
+
+[X-Fleet]
+Global=true
