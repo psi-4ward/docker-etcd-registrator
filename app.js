@@ -4,6 +4,7 @@ var execSync = require('child_process').execSync;
 var serviceFactory = require('./lib/service');
 var Docker = require('./lib/Docker');
 var SkydnsBE = require('./lib/SkydnsBE');
+var VulcandBE = require('./lib/VulcandBE');
 
 /*******************/
 /* Config defaults */
@@ -12,7 +13,7 @@ var SkydnsBE = require('./lib/SkydnsBE');
 _.defaults(process.env, {
   HOSTNAME: execSync('hostname').toString().trim(),
 
-  //DOCKER_HOST: '/var/run/docker.sock',
+  DOCKER_HOST: 'unix:///var/run/docker.sock',
   //DOCKER_HOST: 'tcp://localhost:2376',
   //DOCKER_TLS_VERIFY
   //DOCKER_CERT_PATH
@@ -22,8 +23,16 @@ _.defaults(process.env, {
   //ETCD_CERTFILE: undefined,
   //ETCD_KEYFILE: undefined,
 
-  //SKYDNS_ETCD_PREFIX: '/skydns/local/skydns'
+  //SKYDNS_ETCD_PREFIX: '/skydns/local/skydns',
+  //VULCAND_ETCD_PREFIX: '/vulcand',
 });
+
+
+function errorLogger(method, err) {
+  if(!err) return;
+  console.error('Error: ' + method);
+  console.error(util.inspect(err, {showHidden: false, depth: 3}));
+}
 
 
 /**********/
@@ -48,8 +57,27 @@ docker.on('error', function(err) {
   if(err.code === 'ECONNREFUSED') {
     console.error('Error: Connection to ' + process.env.DOCKER_HOST + ' refused!');
     process.exit(2);
+  } else if(err.code === 'EACCES') {
+    console.error('Error: Access to ' + process.env.DOCKER_HOST + ' denied!');
+    process.exit(2);
   }
-  console.error(util.inspect(err, {showHidden: false, depth: 4}));
+  errorLogger('Docker', err);
+});
+
+var startupSync = [];
+setTimeout(function() {
+  // Remove services which dont have running containers
+  // Add services for container already running
+  docker.getRunning(function(err, data) {
+    var portServices = _(data)
+      .map(serviceFactory)
+      .compact()
+      .invoke('byPorts')
+      .flatten()
+      .value();
+
+    _.invoke(startupSync, 'sync', portServices);
+  });
 });
 
 
@@ -59,19 +87,13 @@ docker.on('error', function(err) {
 
 var skydnsBE = new SkydnsBE();
 
-function err(method, err) {
-  if(!err) return;
-  console.error('Error: ' + method);
-  console.error(util.inspect(err, {showHidden: false, depth: 4}));
-}
-
 // Docker started a container
 docker.on('start', function(data) {
   var service = serviceFactory(data);
   if(!service) return;
 
   service.byPorts().forEach(function(portService) {
-    skydnsBE.addService(portService, err.bind('addService'));
+    skydnsBE.addService(portService, errorLogger.bind(this, 'SkyDNS addService'));
   });
 });
 
@@ -80,15 +102,28 @@ docker.on('die', function(cid) {
   skydnsBE.removeServiceByCid(cid);
 });
 
-// Remove services which dont have running containers
-// Add services for container already running
-docker.getRunning(function(err, data) {
-  var portServices = _(data)
-    .map(serviceFactory)
-    .compact()
-    .invoke('byPorts')
-    .flatten()
-    .value();
+startupSync.push(skydnsBE);
 
-  skydnsBE.sync(portServices);
+
+/**********/
+/* Vulcand */
+/**********/
+
+var vulcandBE = new VulcandBE();
+
+// Docker started a container
+docker.on('start', function(data) {
+  var service = serviceFactory(data);
+  if(!service) return;
+
+  service.byPorts().forEach(function(portService) {
+    vulcandBE.addService(portService, errorLogger.bind(this, 'Vulcand addService'));
+  });
 });
+
+// A container died (kill, crash, stop, ...)
+docker.on('die', function(cid) {
+  vulcandBE.removeServiceByCid(cid);
+});
+
+startupSync.push(vulcandBE);

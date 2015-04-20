@@ -1,8 +1,10 @@
 # docker-etcd-registrator
 
-Docker service registrator for etcd and skydns (and CoreOS).
+Docker service registrator for etcd (and CoreOS).
 The very end of `sidekick.service`
 
+* [SkyDNS](https://github.com/skynetservices/skydns) support
+* [Vulcanproxy](vulcanproxy.com) support
 * Startup synchronization: bring etcd up to date 
  * Add already running containers
  * Remove stopped but registred container
@@ -19,12 +21,11 @@ The very end of `sidekick.service`
 
 ### TODO / Planned
 
-* [Vulcanproxy](vulcanproxy.com) support
 * Some general info logging to stdout
 * Configuration using commandline arguments
 * Support for publicIPs and `--net=host`
 * Improve docu
-
+* Make backends switchable
 
 ## Install &amp; Config
 
@@ -71,6 +72,7 @@ All params are optional
 
 * `HOSTNAME`: Hostname of the system
 * `SKYDNS_ETCD_PREFIX`: `/skydns/local/skydns`
+* `VULCAND_ETCD_PREFIX`: `/skydns/local/skydns`
 <br>
 * `DOCKER_HOST`: `/var/run/docker.sock` or `tcp://localhost:2376`
 * `DOCKER_TLS_VERIFY` from docker-modem
@@ -90,6 +92,7 @@ flag     | description
  docker  | docker related messages   |
  service | container-inspect => service transformation |
  skydns  | skydns etcd data population | 
+ vulcand  | skydns etcd data population | 
 
 
 ## Service Discovery Configration
@@ -114,6 +117,35 @@ $ docker run -p 80:80 -p 443:443 -p 9000:9000 \
     -e "SERVICE_80_NAME=http-proxy" \
     -e "SERVICE_443_NAME=https-proxy" \
     -e "SERVICE_9000_IGNORE=yes" \
+    docker/image
+```
+
+### Vulcand
+Use `SERVICE_[PORT_]VULCAND_(BE|FE)_` formatted env vars to generate etcd values for Vulcanproxy.
+Per default registrator will not generate any vulcand frontend or backend.
+
+In general the `SERVICE_VULCAND_FE_k1_k2_k3=value` style would result in a JSON structure like: `{"k1": {"k2": {"k3": "value"} } }`
+
+Generate a vulcand-backend of type http using the defaults for every port but 9000: 
+```shell
+$ docker run -p 80:80 -p 443:443 -p 9000:9000 \
+    -e "SERVICE_NAME=websrv" \
+    -e "SERVICE_VULCAND_BE_Type=http" \
+    -e "SERVICE_9000_IGNORE=yes" \
+    docker/image
+```
+
+Defining more FE/BE settings
+```shell
+$ docker run -p 3000:3000 -p 22:22 \
+    -e "SERVICE_22_IGNORE=yes" \
+    -e "SERVICE_3000_NAME=microservice" \
+    -e "SERVICE_3000_VULCAND_BE_Type=http" \
+    -e "SERVICE_3000_VULCAND_BE_Settings_Timeouts_Read=10s" \
+    -e "SERVICE_3000_VULCAND_BE_Settings_KeepAlive_MaxIdleConnsPerHost=20" \
+    -e "SERVICE_3000_VULCAND_FE_Type=https" \
+    -e "SERVICE_3000_VULCAND_FE_Route=Host('ms.example.com')" \
+    -e "SERVICE_3000_VULCAND_FE_Settings_Limits_MaxBodyBytes=4048" \
     docker/image
 ```
 
