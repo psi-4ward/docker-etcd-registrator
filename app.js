@@ -127,3 +127,13 @@ docker.on('die', function(cid) {
 });
 
 startupSync.push(vulcandBE);
+
+
+// shutdown
+process.on('SIGTERM', function() {
+  process.exit(0);
+});
+process.on('SIGINT', function() {
+  process.exit(0);
+});
+
