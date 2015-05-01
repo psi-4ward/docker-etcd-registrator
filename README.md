@@ -4,7 +4,7 @@ Docker service registrator for etcd (and CoreOS).
 The very end of `sidekick.service`
 
 * [SkyDNS](https://github.com/skynetservices/skydns) support
-* [Vulcanproxy](vulcanproxy.com) support
+* [Vulcanproxy](http://vulcanproxy.com) support
 * Startup synchronization: bring etcd up to date 
  * Add already running containers
  * Remove stopped but registred container
