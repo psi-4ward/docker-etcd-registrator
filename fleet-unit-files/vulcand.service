@@ -1,0 +1,30 @@
+[Unit]
+Description=Vulcand HTTP Proxy
+Requires=docker.service etcd.service
+After=docker.service etcd.service
+
+[Service]
+Restart=always
+RestartSec=10s
+Type=simple
+NotifyAccess=all
+TimeoutStartSec=120
+TimeoutStopSec=15
+EnvironmentFile=/etc/environment
+
+ExecStartPre=/bin/sh -c '/usr/bin/docker ps | /usr/bin/grep vulcand 1> /dev/null && /usr/bin/docker kill vulcand || true'
+ExecStartPre=/bin/sh -c '/usr/bin/docker ps -a | /usr/bin/grep vulcand 1> /dev/null && /usr/bin/docker rm vulcand || true'
+ExecStartPre=/usr/bin/docker pull psitrax/vulcand:latest
+
+ExecStart=/usr/bin/docker run \
+  --rm \
+  --name=vulcand \
+  --net=host \
+  --env SERVICE_IGNORE=true \
+  -v /etc/ssl/etcd:/etc/ssl/etcd \
+  psitrax/vulcand:latest \
+    vulcand \
+    -etcd=https://172.0.0.1:4001 \
+    -sealKey=YOU SHOULD CREATE YOUR OWN
+
+ExecStop=/bin/sh -c '/usr/bin/docker ps | /usr/bin/grep vulcand 1> /dev/null && /usr/bin/docker stop vulcand || true'

@@ -1,5 +1,5 @@
 [Unit]
-Description=infra-skydns
+Description=SkyDNS
 Requires=docker.service etcd.service
 After=docker.service etcd.service
 
@@ -16,9 +16,9 @@ ExecStartPre=/bin/sh -c "docker ps -a | grep %p 1>/dev/null && docker rm %p || t
 
 # initial write config (only if /skydns/config does not exist
 ExecStartPre=/bin/sh -c "\
-  /opt/bin/etcdctl2 ls /skydns/config &> /dev/null \
+  etcdctl ls /skydns/config &> /dev/null \
   || \
-  /opt/bin/etcdctl2 set /skydns/config \
+  etcdctl set /skydns/config \
     '{\"domain\":\"local.\",\"hostmaster\":\"admin@example.com\",\"nameservers\":[\"8.8.8.8:53\",\"8.8.4.4:53\"],\"ttl\":60}' \
   "
 

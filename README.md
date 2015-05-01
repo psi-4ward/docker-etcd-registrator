@@ -21,11 +21,8 @@ The very end of `sidekick.service`
 
 ### TODO / Planned
 
-* Some general info logging to stdout
 * Configuration using commandline arguments
-* Support for publicIPs and `--net=host`
 * Improve docu
-* Make backends switchable
 
 ## Install &amp; Config
 
@@ -37,7 +34,7 @@ The very end of `sidekick.service`
 sudo npm install -g docker-etcd-registrator
 
 DEBUG=docker,skydns,service \
-  ETCD_ENDPOINTS=http://10.1.0.1:4001 \
+  ETCD_ENDPOINTS=http://10.1.0.1:4001,http://10.1.0.2:4001 \
   docker-etcd-registrator
 ```
 
@@ -48,7 +45,7 @@ docker run --rm \
   --name docker-etcd-registrator \
   -v /etc/ssl/etcd:/etc/ssl/etcd \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  --env DEBUG=docker,skydns,service \
+  --env DEBUG=docker,skydns,vulcand,container \
   --env HOSTNAME=`hostname` \
   --env ETCD_ENDPOINTS=https://10.1.0.1:4001,https://10.1.0.2:4001 \
   --env ETCD_CAFILE=/etc/ssl/etcd/ca-authority.pem \
@@ -71,6 +68,8 @@ ETCD_ENDPOINTS=http://10.1.0.1:4001 node app.js
 All params are optional
 
 * `HOSTNAME`: Hostname of the system
+* `REGISTER=public`: Register only Ports which binds to the host interface (docker -p)
+* `REGISTER_PUBLIC_IP=10.0.1.1`: IP if Hostbinding dont specify any (docker -p 80:80 instead of docker -p 10.0.1.1:80:80)
 * `SKYDNS_ETCD_PREFIX`: `/skydns/local/skydns`
 * `VULCAND_ETCD_PREFIX`: `/skydns/local/skydns`
 <br>
@@ -86,13 +85,14 @@ All params are optional
 ### Debug
 Enable debugging using `DEBUG` env var: `DEBUG=docker,skydns,service node app.js`
 
-flag     | description
----------|-----------------------------
- *       | print every debug message |
- docker  | docker related messages   |
- service | container-inspect => service transformation |
- skydns  | skydns etcd data population | 
- vulcand  | skydns etcd data population | 
+flag       | description
+-----------|-----------------------------
+ *         | print every debug message |
+ docker    | docker related messages   |
+ conteiner | container-inspect => service transformation |
+ skydns    | skydns etcd data population | 
+ vulcand   | skydns etcd data population | 
+ modem     | raw docker socket messages | 
 
 
 ## Service Discovery Configration
