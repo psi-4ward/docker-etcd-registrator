@@ -1,6 +1,6 @@
 {
   "name": "docker-etcd-registrator",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Docker service registrator for etcd and skydns",
   "preferGlobal": "true",
   "main": "app.js",
