@@ -61,13 +61,18 @@ fs.readdirSync(__dirname + '/backends').forEach(function(file) {
   backends.push(new Be(docker));
 });
 
-// Startup sync
-docker.on('eventstream_open', function() {
-  console.log('Docker daemon connected');
+// Sync
+function sync() {
+  console.log('Sync etcd with running containers');
   docker.getRunning(function(err, services) {
     if(err) return errorLogger('sync', err);
     _.invoke(backends, 'sync', services);
   });
+}
+docker.on('eventstream_open', function() {
+  console.log('Docker daemon connected');
+  sync();
+  setInterval(sync, 3600 * 8 * 1000);
 });
 
 
