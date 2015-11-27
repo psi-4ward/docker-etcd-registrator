@@ -24,7 +24,7 @@ ExecStart=/usr/bin/docker run \
   -v /etc/ssl/etcd:/etc/ssl/etcd \
   psitrax/vulcand:latest \
     vulcand \
-    -etcd=https://172.17.2.1:4001 \
+    -etcd=https://127.0.0.1:4001 \
     -sealKey=YOU SHOULD CREATE YOUR OWN
 
 ExecStop=/bin/sh -c '/usr/bin/docker ps | /usr/bin/grep vulcand 1> /dev/null && /usr/bin/docker stop vulcand || true'
