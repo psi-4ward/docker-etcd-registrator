@@ -24,6 +24,7 @@ function Vulcand(docker) {
   this.defaults = {
     BE: {
       Type: "http",
+      URLType: "http",
       Settings: {}
     },
     FE: {
@@ -122,11 +123,18 @@ Vulcand.prototype.addBackend = function addBackend(service, cb) {
   var BEdata = this.attribs2json('BE', service.attribs);
 
   console.log('Vulcand Backend: ' + service.name + ' ' + service.ip + ':' + service.port + ' [' + url + ']');
-  etcd.set(url + '/backend', JSON.stringify(BEdata), function(err) {
+  var d = JSON.stringify(BEdata, function(k,v) {
+    if(k == "URLType") {
+      return undefined
+    } else {
+      return v
+    }
+  });
+  etcd.set(url + '/backend', d, function(err) {
     if(err) return cb(err);
 
     // Add Server
-    var SRVdata = {URL: BEdata.Type + '://' + service.ip + ':' + service.port};
+    var SRVdata = {URL: BEdata.URLType + '://' + service.ip + ':' + service.port};
     etcd.set(
       srvUrl,
       JSON.stringify(SRVdata),
