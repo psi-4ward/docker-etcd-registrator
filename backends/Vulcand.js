@@ -60,7 +60,7 @@ Vulcand.prototype.attribs2json = function env2json(type, attribs) {
 
     keys.forEach(function(key, i) {
       if(i >= keys.length-1) {
-        val = val === 'true' || (val === 'false' ? false : val);
+        curr[key] = val === 'true' || (val === 'false' ? false : val);
       } else {
         if(!curr[key]) curr[key] = {};
         curr = curr[key];
