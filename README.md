@@ -70,6 +70,7 @@ All params are optional
 * `HOSTNAME`: Hostname of the system
 * `REGISTER=public`: Register only Ports which binds to the host interface (docker -p)
 * `REGISTER_PUBLIC_IP=10.0.1.1`: IP if Hostbinding dont specify any (docker -p 80:80 instead of docker -p 10.0.1.1:80:80)
+* `FORCE_PUBLIC_IP`: Set to force binding to the public IP even if the real binding is specified, default: not set
 * `SKYDNS_ETCD_PREFIX`: `/skydns/local/skydns`
 * `VULCAND_ETCD_PREFIX`: `/skydns/local/skydns`
 <br>
